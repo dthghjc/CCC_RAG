@@ -1,11 +1,11 @@
- # AI-RAG 项目
+# CFLP_RAG
 
 这是一个基于 FastAPI 的 AI-RAG（Retrieval-Augmented Generation）系统，结合 OpenAI 的语言模型和向量检索，旨在提供智能对话服务。
 
 ## 项目结构
 
-```html
-ai-rag-project/
+```
+CFLP_RAG/
 ├── app/
 │   ├── __init__.py                # FastAPI应用初始化
 │   ├── main.py                    # FastAPI主应用文件，包含接口路由
@@ -18,7 +18,8 @@ ai-rag-project/
 │   │   ├── __init__.py
 │   │   ├── rag_process.py         # RAG流程处理
 │   │   ├── knowledge_retrieval.py # 知识库检索（Milvus、关键字、图数据库）
-│   │   └── response_generation.py # 生成回复的逻辑
+│   │   ├── response_generation.py # 生成回复的逻辑
+│   │   └── openai_client.py       # OpenAI客户端
 │   ├── models/                    # 数据模型
 │   │   ├── __init__.py
 │   │   ├── conversation.py        # 对话历史模型
@@ -39,4 +40,3 @@ ai-rag-project/
 ├── .env                           # 环境变量配置文件
 └── README.md                      # 项目说明文件
 ```
-# CFLP_RAG
