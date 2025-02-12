@@ -20,3 +20,5 @@ class Config:
     MILVUS_COLLECTION_NAME_CFLP = "collection_cflp"
     MILVUS_DB_NAME_CFLP = "database_cflp"
     MILVUS_SEARCH_TOP_K = 5
+    # conversation_manager
+    MAX_CONTENT_LENGTH = 4096

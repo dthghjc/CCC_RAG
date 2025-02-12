@@ -41,7 +41,7 @@ class OpenAI_RAG_Client:
         self._client = OpenAIClient()
         self._rag_processor = RAGProcessor()
     
-    def generate_response(self, user_query: str):
+    def generate_response(self, user_query: str, history: list):
         """
         根据用户查询生成回复。
         :param user_query: 用户输入的查询
@@ -50,12 +50,30 @@ class OpenAI_RAG_Client:
         # 使用 RAGProcessor 处理查询，获取知识
         knowledge = self._rag_processor.process_query(user_query)
         prompt = generate_final_response(user_query, knowledge)
-        messages = [{"role": "user", "content": prompt}]
+        # 创建一个messages列表
+        messages = []
+        # 保证 system 部分始终在最前面
+        if len(history) > 0 and "system" in history[0]["role"]:
+            messages.append({"role": "system", "content": history[0]["content"]})
+
+        # 拼接用户和助手的历史对话
+        for message in history[1:]:
+            messages.append({"role": message["role"], "content": message["content"]})
+
+        # 添加当前的用户查询
+        messages.append({"role": "user", "content": prompt})
         response = self._client.generate_response(messages)
         return response
     
 if __name__ == "__main__":
     RAG_Client = OpenAI_RAG_Client()
+    history = [
+        {"role": "system", "content": "你是一个专业的问答助手，专注于基于下述已知信息回答用户的问题。"},
+        {"role": "user", "content": "你好！"},
+        {"role": "assistant", "content": "你好！有什么我可以帮助你的吗？"},
+        {"role": "user", "content": "请告诉我AI的定义。"},
+        {"role": "assistant", "content": "AI是指模拟人类智能的技术。"}
+    ]
     user_query = "《采购师高级 模块五 履行谈判与管控合同》的责任编辑和校对人员有哪些？"
-    response = RAG_Client.generate_response(user_query)
+    response = RAG_Client.generate_response(user_query,history)
     print(response)
