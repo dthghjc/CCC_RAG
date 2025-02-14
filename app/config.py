@@ -22,3 +22,10 @@ class Config:
     MILVUS_SEARCH_TOP_K = 5
     # conversation_manager
     MAX_CONTENT_LENGTH = 4096
+    # MySQL
+    MYSQL_HOST = os.getenv("MYSQL_HOST")
+    MYSQL_PORT = os.getenv("MYSQL_PORT")
+    MYSQL_USER = os.getenv("MYSQL_USER")
+    MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
+    MYSQL_DATABASE = "CFLP"
+    

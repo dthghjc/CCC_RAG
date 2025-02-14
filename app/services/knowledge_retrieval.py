@@ -18,7 +18,7 @@ def retrieve_knowledge(user_query: str):
     # 获取查询的向量嵌入
     openai_client = OpenAIClient()
     query_embedding = openai_client.generate_embedding(user_query)
-    logging.info(f"Generated embedding for query: {user_query}")
+    # logging.info(f"Generated embedding for query: {user_query}")
     # 查询 Milvus 获取相关内容
     milvus_client = VectorDatabaseClient(collection_name=Config.MILVUS_COLLECTION_NAME_CFLP)  # 根据实际情况修改
     search_results = milvus_client.search(query_embedding)
@@ -26,10 +26,10 @@ def retrieve_knowledge(user_query: str):
     if search_results:
         # 示例：返回第一个检索到的结果（根据实际结构进行修改）
         knowledge = search_results
-        logging.info(f"Retrieved knowledge: {knowledge}")
+        # logging.info(f"Retrieved knowledge: {knowledge}")
         return knowledge
     else:
-        logging.info("No relevant knowledge found.")
+        # logging.info("No relevant knowledge found.")
         return None
     
 if __name__ == "__main__":

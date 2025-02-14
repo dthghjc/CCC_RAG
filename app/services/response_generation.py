@@ -1,6 +1,3 @@
-"""
-拼接 prompt 后调用大模型（例如封装的 OpenAIClient），并处理返回结果。
-"""
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))

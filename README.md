@@ -6,37 +6,43 @@
 
 ```
 CFLP_RAG/
+│
 ├── app/
-│   ├── __init__.py                # FastAPI应用初始化
-│   ├── main.py                    # FastAPI主应用文件，包含接口路由
-│   ├── api/                       # API路由
+│   ├── __init__.py
+│   ├── main.py                   # FastAPI 启动文件
+│   ├── config.py                 # 配置文件（如数据库连接等）
+│   ├── db/                       # 数据库操作相关的文件
 │   │   ├── __init__.py
-│   │   └── v1/                    # v1版本API接口
-│   │       ├── __init__.py
-│   │       └── conversation.py    # 对话相关API接口
-│   ├── services/                  # 业务逻辑处理
+│   │   ├── conversation_manager.py # 用于管理对话数据的操作
+│   │   ├── milvus.py              # 与 Milvus 数据库交互的操作
+│   │   └── mysql.py               # 与 MySQL 数据库交互的操作
+│   ├── models/                   # 数据模型
 │   │   ├── __init__.py
-│   │   ├── rag_process.py         # RAG流程处理
-│   │   ├── knowledge_retrieval.py # 知识库检索（Milvus、关键字、图数据库）
-│   │   ├── response_generation.py # 生成回复的逻辑
-│   │   └── openai_client.py       # OpenAI客户端
-│   ├── models/                    # 数据模型
+│   │   ├── conversation.py       # 对话历史相关模型
+│   │   └── knowledge_base.py     # 知识库模型
+│   ├── services/                 # 业务逻辑层
 │   │   ├── __init__.py
-│   │   ├── conversation.py        # 对话历史模型
-│   │   └── knowledge_base.py      # 知识库模型
-│   ├── db/                        # 数据库连接与操作
+│   │   ├── knowledge_retrieval.py # 知识检索相关逻辑
+│   │   ├── openai_client.py      # OpenAI 客户端交互
+│   │   ├── rag_process.py        # RAG 流程控制
+│   │   ├── response_generation.py # 生成最终回复的逻辑
+│   ├── api/                      # FastAPI 路由
 │   │   ├── __init__.py
-│   │   ├── mysql.py               # MySQL连接与操作
-│   │   └── milvus.py              # Milvus连接与操作
-│   ├── utils/                     # 工具函数
-│   │   ├── __init__.py
-│   │   ├── logger.py              # 日志处理
-│   │   └── embedding.py           # OpenAI嵌入函数
-│   ├── config.py                  # 配置文件（如API密钥、数据库配置等）
-├── templates/                     # 存放prompt模板的文件夹
-│   └── prompt_template.txt        # prompt模板文件
-├── requirements.txt               # 项目依赖库
-├── Dockerfile                     # Docker配置文件
-├── .env                           # 环境变量配置文件
-└── README.md                      # 项目说明文件
+│   │   ├── v1/                   # API 版本 1 路由
+│   │   │   ├── __init__.py
+│   │   │   └── conversation.py   # 处理用户对话相关的路由
+│   ├── templates/                # 存放模板文件
+│   │   └── prompt_template.txt   # 存放 prompt 模板
+│   ├── tests/                    # 测试文件夹
+│   │   └── history.json          # 测试用的对话历史数据
+│   └── utils/                    # 工具模块
+│       ├── __init__.py
+│       ├── embedding.py          # 嵌入生成相关逻辑
+│       └── logger.py             # 日志相关工具
+│
+├── .gitignore                    # 忽略不需要上传到 Git 的文件
+├── Dockerfile                    # Docker 配置文件
+├── requirements.txt              # 项目依赖包
+└── README.md                     # 项目说明文档
+
 ```
