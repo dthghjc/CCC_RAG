@@ -6,7 +6,7 @@ import mysql.connector
 import json
 from uuid import uuid4
 from datetime import datetime, timezone
-
+import pytz
 
 class SQLClient:
     def __init__(self):
@@ -92,7 +92,10 @@ class SQLClient:
         conversation_id = str(uuid4())
         system_message = [{"role": "system", "content": "你是一个专业的问答助手，专注于基于已知信息回答用户的问题。"}]
         query = "INSERT INTO chat_history (id, user_id, conversation_history, timestamp) VALUES (%s, %s, %s, %s)"
-        timestamp = datetime.now(timezone.utc)
+        # timestamp = datetime.now(timezone.utc)
+        # 使用 pytz 设置为北京时间
+        beijing_tz = pytz.timezone('Asia/Shanghai')
+        timestamp = datetime.now(beijing_tz)
         self.execute_query(query, (conversation_id, user_id, json.dumps(system_message), timestamp))
         return conversation_id
 
@@ -127,7 +130,10 @@ class SQLClient:
             history = json.loads(result[0]['conversation_history'])
             history.append(new_message)
             updated_history = json.dumps(history)
-            timestamp = datetime.now(timezone.utc)
+            # timestamp = datetime.now(timezone.utc)
+            # 使用 pytz 设置为北京时间
+            beijing_tz = pytz.timezone('Asia/Shanghai')
+            timestamp = datetime.now(beijing_tz)
             
             query = "UPDATE chat_history SET conversation_history = %s, timestamp = %s WHERE id = %s"
             self.execute_query(query, (updated_history, timestamp, conversation_id))

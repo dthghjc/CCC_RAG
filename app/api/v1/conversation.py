@@ -1,11 +1,13 @@
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from fastapi import APIRouter
+from fastapi import APIRouter, Header, HTTPException, Depends
 from app.services.response_generation import OpenAI_RAG_Client
 from app.db.conversation_manager import ConversationManager
 from app.db.mysql_client import SQLClient
 from app.models.conversation_base import ConversationRequest, ConversationResponse, ChatHistoryRequest
+from app.config import Config
+from typing import Optional
 import json
 from uuid import uuid4
 import logging
@@ -20,15 +22,15 @@ GPT_Client = OpenAI_RAG_Client()
 SQL_client = SQLClient()
 conversation_manager = ConversationManager()
 
+API_KEY = Config.FASTAPI_API_KEY
+# 验证 API 密钥的依赖项
+def api_key_auth(api_key: Optional[str] = Header(None)):
+    if api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
+    return api_key
+
 @RAG_Client.post("/cflp")
-def generate_response_for_user(request: ConversationRequest):
-    """
-    处理用户查询，获取历史对话并生成新的回复
-    :param user_id: 用户 ID
-    :param conversation_id : 会话ID
-    :param query: 用户的查询内容
-    :return: 返回 OpenAI 的回复
-    """
+def generate_response_for_user(request: ConversationRequest, api_key: str = Depends(api_key_auth)):
     # 用户输入写入SQL
     conversation_id = SQL_client.append_to_conversation(
         username=request.user_id,
@@ -55,14 +57,7 @@ def generate_response_for_user(request: ConversationRequest):
     )
 
 @SQL_ChatHistory_Client.post("/chat_history")
-def add_chat_history(request: ChatHistoryRequest):
-    """
-    直接向数据库中添加聊天历史记录。
-    如果 conversation_id 为空，则自动生成新的会话ID。
-
-    :param request: ChatHistoryRequest 包含 user_id, conversation_id, message, is_user
-    :return: 返回包含 user_id、conversation_id 和状态信息的响应
-    """
+def add_chat_history(request: ChatHistoryRequest, api_key: str = Depends(api_key_auth)):
     try:
         # 如果 request.conversation_id 为空，SQL_client.append_to_conversation 内部应生成新的会话ID
         conversation_id = SQL_client.append_to_conversation(
@@ -86,7 +81,7 @@ def add_chat_history(request: ChatHistoryRequest):
 
 # 测试接口
 @Test_Client.post("/")
-def api_test(request: ConversationRequest):
+def api_test(request: ConversationRequest, api_key: str = Depends(api_key_auth)):
     request.conversation_id = str(uuid4())
     results = request
     return results
