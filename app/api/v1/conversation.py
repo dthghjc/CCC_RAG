@@ -1,12 +1,9 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from fastapi import APIRouter, Header, HTTPException, Depends
 from app.services.response_generation import OpenAI_RAG_Client
 from app.db.conversation_manager import ConversationManager
 from app.db.mysql_client import SQLClient
 from app.models.conversation_base import ConversationRequest, ConversationResponse, ChatHistoryRequest
-from app.config import Config
+from app.core.config import Config
 from typing import Optional
 import json
 from uuid import uuid4

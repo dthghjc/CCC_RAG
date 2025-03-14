@@ -3,7 +3,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from app.services.openai_client import OpenAIClient
 from app.services.rag_process import RAGProcessor
-from app.config import Config
+from app.core.config import Config
 
 def load_prompt_template():
     """

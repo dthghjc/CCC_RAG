@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-from app.config import Config
+from app.core.config import Config
 
 class ConversationManager:
     def __init__(self):
