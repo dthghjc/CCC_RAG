@@ -125,6 +125,10 @@ def login_access_token(
 ) -> Any:
     """
     用户登录接口。
+    grant_type="password": 表示使用密码进行授权。
+    scope：权限范围，可选，默认为空字符串 ""。
+    client_id：客户端 ID，可选，默认为 None。
+    client_secret：客户端密钥，可选，默认为 None。
     """
     user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not security.verify_password(form_data.password, user.hashed_password):  # not security.verify_password(...): 密码验证失败。
