@@ -105,7 +105,6 @@ def get_chat(
 def create_message(
     *,  # * 是一个特殊的语法，用于强制指定后续的参数必须以关键字参数（keyword-only arguments）的形式传递，而不是位置参数（positional arguments）。
     db: Session = Depends(get_db),
-    chat_id: int, # 聊天ID
     message: MessageCreate,
     current_user: User = Depends(get_current_user)  # 当前登录用户
 ):
@@ -115,7 +114,7 @@ def create_message(
     chat = (
         db.query(Chat)
         .filter(
-            Chat.id == chat_id,
+            Chat.id == message.chat_id,
             Chat.user_id == current_user.id
         )
         .first()
@@ -131,7 +130,7 @@ def create_message(
     
     # 创建并存储新消息
     new_message = Message(
-        chat_id=chat_id,
+        chat_id=message.chat_id,
         role=message.role,
         content=message.content,
         meta_data=message.meta_data
@@ -146,7 +145,7 @@ def create_message(
         chat_id=new_message.chat_id,
         role=new_message.role,
         content=new_message.content,
-        metadata=new_message.metadata,
+        metadata=new_message.meta_data,
         created_at=new_message.created_at,
         updated_at=new_message.updated_at
     )

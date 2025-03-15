@@ -64,6 +64,13 @@ def get_current_user(
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise credentials_exception
+    # 用户处于非活动状态
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Inactive user",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     # 返回经过验证的 User 对象，供后续接口使用。
     return user
 
@@ -147,7 +154,7 @@ def login_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/test_token", response_model=UserResponse, operation_id="测试 Token")
-def test_token(current_user: User = Depends(get_current_user)) -> Any:
+def test_token(current_user: User = Depends(get_current_user)):
     """
     测试访问 token 是否有效。
     """

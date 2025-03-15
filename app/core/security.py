@@ -48,7 +48,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     使用 bcrypt 验证明文密码与哈希密码是否一致。
     内部会重新计算哈希并比较，确保安全性。
     """
-    # return pwd_context.verify(plain_password, hashed_password)
     return checkpw(plain_password.encode(), hashed_password.encode())
 
 # 生成哈希密码
@@ -86,33 +85,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     encoded_jwt = jwt.encode(to_encode, Config.SECRET_KEY, algorithm=Config.ALGORITHM)
     return encoded_jwt 
 
-# def get_current_user(
-#     db: Session = Depends(get_db),
-#     token: str = Depends(oauth2_scheme)
-# ) -> User:
-#     credentials_exception = HTTPException(
-#         status_code=status.HTTP_401_UNAUTHORIZED,
-#         detail="Could not validate credentials",
-#         headers={"WWW-Authenticate": "Bearer"},
-#     )
-#     try:
-#         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-#         username: str = payload.get("sub")
-#         if username is None:
-#             raise credentials_exception
-#     except JWTError:
-#         raise credentials_exception
-    
-#     user = db.query(User).filter(User.username == username).first()
-#     if user is None:
-#         raise credentials_exception
-#     if not user.is_active:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Inactive user",
-#             headers={"WWW-Authenticate": "Bearer"},
-#         )
-#     return user 
 
 # def get_api_key_user(
 #     db: Session = Depends(get_db),

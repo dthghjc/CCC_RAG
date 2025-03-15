@@ -3,8 +3,8 @@ from typing import Optional, List
 from datetime import datetime
 
 class MessageBase(BaseModel):
-    content: str
-    role: str
+    content: str = ""
+    role: str = ""
     meta_data: Optional[dict] = None
 
 class MessageCreate(MessageBase):
@@ -21,7 +21,7 @@ class MessageResponse(MessageBase):
         from_attributes = True
 
 class ChatBase(BaseModel):
-    title: str
+    title: str = ""
 
 class ChatResponse(ChatBase):
     id: int

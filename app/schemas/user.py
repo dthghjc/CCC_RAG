@@ -3,13 +3,13 @@ from typing import Optional, List
 from datetime import datetime
 
 class UserBase(BaseModel):
-    username: str
-    email: str
+    username: str = ""
+    email: str = ""
     is_active: bool = True
     is_superuser: bool = False
     
 class UserCreate(UserBase):
-    password: str
+    password: str = ""
     
 class UserUpdate(UserBase):
     password: Optional[str] = None
