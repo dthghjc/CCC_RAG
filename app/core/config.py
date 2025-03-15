@@ -7,12 +7,25 @@ from typing import Optional
 load_dotenv()
 
 class Settings(BaseSettings):
+    # Project
     PROJECT_NAME: str = "CFLP_RAG"  # Project name
     VERSION: str = "0.1.0"  # Project version
     
     # FastAPI API
     FASTAPI_API_KEY: str = os.getenv("FASTAPI_API_KEY")
-    FASTAPI_API_PORT: int  = os.getenv("FASTAPI_API_PORT")
+    FASTAPI_SERVER_URL: str = os.getenv("FASTAPI_SERVER_URL")
+    FASTAPI_API_PORT: int  = os.getenv("FASTAPI_SERVER_PORT")
+    FASTAPI_SERVER_URI_PORT: Optional[str] = None
+    @property
+    def get_api_url(self) -> str:
+        if self.FASTAPI_SERVER_URI_PORT:
+            return self.FASTAPI_SERVER_URI_PORT
+        else:
+            return f"{self.FASTAPI_SERVER_URL}:{self.FASTAPI_API_PORT}"
+
+    API_V1_STR: str = "/v1"
+    OPENAPI_VERSION: str = "3.1.0"
+    
     # OpenAI
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
     OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL")

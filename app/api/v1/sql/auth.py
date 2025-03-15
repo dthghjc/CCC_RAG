@@ -19,7 +19,7 @@ router = APIRouter()  # 创建一个名为 "router" 的 API 路由器
 JWT 是在用户登录时（例如通过 /token 端点）动态生成的，而不是为每个用户预先分配一个固定的 JWT。
 每次用户成功认证（提供正确的用户名和密码），服务器会生成一个新的 JWT，包含该用户的身份信息（例如 sub 字段）和过期时间（exp）
 """
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")  
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/token") 
 
 """
 Depends 是 FastAPI 提供的一个依赖注入工具，允许函数在调用时自动解析和提供参数，而无需手动传入。
@@ -68,10 +68,10 @@ def get_current_user(
     return user
 
 # 用户注册接口
-@router.post("/register", response_model=UserResponse)  # 指定返回数据的结构为 UserResponse
+@router.post("/register", response_model=UserResponse, operation_id="用户注册")  # 指定返回数据的结构为 UserResponse
 def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:  # *: 表示后面的参数必须是关键字参数（不能用位置参数传递），提高代码可读性。
     """
-    用户注册接口。首先检查数据库中是否已有相同的电子邮件或用户名，如果存在，则返回相应的错误信息。然后创建新用户，哈希密码并将其存储在数据库中。
+    用户注册接口。
     """
     try:
         # 检查邮箱是否存在
@@ -111,13 +111,13 @@ def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:  # *
         ) from e  # from e: 将原始异常 e 附加到新异常的上下文，便于调试
 
 # 获取 JWT 访问令牌
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=Token, operation_id="获取 Token")
 def login_access_token(
     db: Session = Depends(get_db),  # 注入数据库会话，通过 get_db 获取。
     form_data: OAuth2PasswordRequestForm = Depends()  # 注入表单数据，使用 FastAPI 的 OAuth2PasswordRequestForm，从请求中提取用户名和密码。
 ) -> Any:
     """
-    用户登录接口。根据提供的用户名和密码验证用户，生成并返回一个 JWT 访问令牌。如果验证失败，会返回 HTTP 401 Unauthorized 错误。
+    用户登录接口。
     """
     user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not security.verify_password(form_data.password, user.hashed_password):  # not security.verify_password(...): 密码验证失败。
@@ -146,9 +146,9 @@ def login_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/test_token", response_model=UserResponse)
+@router.post("/test_token", response_model=UserResponse, operation_id="测试 Token")
 def test_token(current_user: User = Depends(get_current_user)) -> Any:
     """
-    用于测试访问 token 是否有效，返回当前用户信息。如果 token 无效或过期，将会抛出身份验证错误。
+    测试访问 token 是否有效。
     """
     return current_user

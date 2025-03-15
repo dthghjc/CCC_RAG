@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt  # 用于编码和解码 JWT 令牌，处理令牌相关错误。
-from passlib.context import CryptContext  # 来自 passlib，用于密码哈希和验证（这里用 bcrypt）。
 from app.core.config import Config
 from fastapi import Depends, HTTPException, status, Security
 from fastapi.security import OAuth2PasswordBearer, APIKeyHeader  # FastAPI 提供的安全工具，分别处理 OAuth2 令牌和 API Key。
 from sqlalchemy.orm import Session
 import pytz
+from bcrypt import hashpw, gensalt, checkpw
 
 from app.db.session import get_db
 from app.models.user import User
@@ -21,7 +21,7 @@ schemes=["bcrypt"]: 指定使用 bcrypt 算法进行密码哈希。
 bcrypt 是一种安全的哈希算法，广泛用于密码存储，具有抗暴力破解的特性。
 deprecated="auto": 自动处理已废弃的哈希方案（例如旧版本的 bcrypt），确保向后兼容。
 """
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Auth2 令牌验证
 """
@@ -30,7 +30,7 @@ tokenUrl="/api/v1/auth/login/access-token": 指定获取令牌的端点（登录
 从请求的 Authorization 头中提取 Bearer Token（格式：Authorization: Bearer <token>）。
 用于依赖注入，验证用户身份（例如 Depends(oauth2_scheme)）。
 """
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login/access-token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/token")
 # API Key 验证
 """
 APIKeyHeader: FastAPI 提供的工具，用于从请求头提取 API Key。
@@ -48,7 +48,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     使用 bcrypt 验证明文密码与哈希密码是否一致。
     内部会重新计算哈希并比较，确保安全性。
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # return pwd_context.verify(plain_password, hashed_password)
+    return checkpw(plain_password.encode(), hashed_password.encode())
 
 # 生成哈希密码
 def get_password_hash(password: str) -> str:
@@ -58,7 +59,8 @@ def get_password_hash(password: str) -> str:
     pwd_context.hash:
     使用 bcrypt 对明文密码进行哈希，生成安全的密码存储格式。
     """
-    return pwd_context.hash(password)
+    # return pwd_context.hash(password)
+    return hashpw(password.encode(), gensalt()).decode()
 # 创建访问token
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
