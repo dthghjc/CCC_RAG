@@ -12,9 +12,9 @@ class Settings(BaseSettings):
     VERSION: str = "0.1.0"  # Project version
     
     # FastAPI API
-    FASTAPI_API_KEY: str = os.getenv("FASTAPI_API_KEY")
-    FASTAPI_SERVER_URL: str = os.getenv("FASTAPI_SERVER_URL")
-    FASTAPI_API_PORT: int  = os.getenv("FASTAPI_SERVER_PORT")
+    FASTAPI_API_KEY: str = os.getenv("FASTAPI_API_KEY", "sk-key")
+    FASTAPI_SERVER_URL: str = os.getenv("FASTAPI_SERVER_URL", "0.0.0.0")
+    FASTAPI_API_PORT: int  = os.getenv("FASTAPI_SERVER_PORT", 8000)
     FASTAPI_SERVER_URI_PORT: Optional[str] = None
     @property
     def get_api_url(self) -> str:
@@ -44,10 +44,10 @@ class Settings(BaseSettings):
     # conversation_manager
     MAX_CONTENT_LENGTH: int = 4096
     # MySQL
-    MYSQL_HOST: str = os.getenv("MYSQL_HOST")
-    MYSQL_PORT: int = os.getenv("MYSQL_PORT")
-    MYSQL_USER: str = os.getenv("MYSQL_USER")
-    MYSQL_PASSWORD: str = os.getenv("MYSQL_PASSWORD")
+    MYSQL_HOST: str = os.getenv("MYSQL_HOST", "db")
+    MYSQL_PORT: int = os.getenv("MYSQL_PORT", 3306)
+    MYSQL_USER: str = os.getenv("MYSQL_USER", "dthghjc")
+    MYSQL_PASSWORD: str = os.getenv("MYSQL_PASSWORD", "24Khjcmysql")
     MYSQL_DATABASE: str = "CFLP"
     # 数据库连接 URL，使用 Optional[str] 的原因是在没有设定 MYSQL_HOST 时，SQLALCHEMY_DATABASE_URI 会被设置为 None，方便if判断。
     SQLALCHEMY_DATABASE_URI: Optional[str] = None
@@ -63,9 +63,9 @@ class Settings(BaseSettings):
             return f"mysql+mysqlconnector://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DATABASE}"
         
     # JWT
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
-    ALGORITHM: str = os.getenv("ALGORITHM")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "f7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 10080)
     
     class Config:
         env_file = ".env"
