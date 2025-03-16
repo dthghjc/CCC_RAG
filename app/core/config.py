@@ -14,14 +14,14 @@ class Settings(BaseSettings):
     # FastAPI API
     FASTAPI_API_KEY: str = os.getenv("FASTAPI_API_KEY", "sk-key")
     FASTAPI_SERVER_URL: str = os.getenv("FASTAPI_SERVER_URL", "0.0.0.0")
-    FASTAPI_API_PORT: int  = os.getenv("FASTAPI_SERVER_PORT", 8000)
+    FASTAPI_SERVER_PORT: int  = os.getenv("FASTAPI_SERVER_PORT", 8000)
     FASTAPI_SERVER_URI_PORT: Optional[str] = None
     @property
     def get_api_url(self) -> str:
         if self.FASTAPI_SERVER_URI_PORT:
             return self.FASTAPI_SERVER_URI_PORT
         else:
-            return f"{self.FASTAPI_SERVER_URL}:{self.FASTAPI_API_PORT}"
+            return f"{self.FASTAPI_SERVER_URL}:{self.FASTAPI_SERVER_PORT}"
 
     API_V1_STR: str = "/v1"
     OPENAPI_VERSION: str = "3.1.0"
