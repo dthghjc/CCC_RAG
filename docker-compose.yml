@@ -16,8 +16,6 @@ services:
       - .env
     environment:
       - TZ=Asia/Shanghai
-    volumes:
-      - ./app:/opt/app
     networks:
       - app_network
     restart: unless-stopped
@@ -35,7 +33,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/opt/mysql
+      - /opt/mysql:/var/lib/mysql
     networks:
       - app_network
     healthcheck:
