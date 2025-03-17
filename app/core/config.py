@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     # conversation_manager
     MAX_CONTENT_LENGTH: int = 4096
     # MySQL
-    MYSQL_HOST: str = os.getenv("MYSQL_HOST", "db")
+    MYSQL_HOST: str = os.getenv("MYSQL_HOST", "cflp_mysql_server")
     MYSQL_PORT: int = int(os.getenv("MYSQL_PORT", 3306))
     MYSQL_USER: str = os.getenv("MYSQL_USER", "dthghjc")
     MYSQL_PASSWORD: str = os.getenv("MYSQL_PASSWORD", "24Khjcmysql")
