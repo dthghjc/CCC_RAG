@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import DatabaseError
 from app.core.config import Config
 from app.models.base import Base
-from app.models.user import User
-from app.models.chat import Chat, Message
 import logging
+import time
 
 # 设置日志
 logging.basicConfig(level=logging.INFO)
