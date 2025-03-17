@@ -56,6 +56,3 @@ services:
 networks:
   app_network:
     driver: bridge
-
-volumes:
-  mysql_data:
