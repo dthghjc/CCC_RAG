@@ -14,7 +14,7 @@ router = APIRouter()
 
 # 创建对话
 @router.post("/", response_model=ChatResponse, operation_id="创建对话")
-def create_chat(
+async def create_chat(
     *,
     db: Session = Depends(get_db),  # 获取对话数据库
     chat_in: ChatBase,
@@ -32,9 +32,10 @@ def create_chat(
     db.commit()
     db.refresh(chat)
     return chat
+
 # 获取所有对话
-@router.get("/", response_model=List[ChatResponse], operation_id="获取用户的所有对话") 
-def get_chats(
+@router.get("/", response_model=List[ChatResponse], operation_id="获取对话列表")
+async def get_chats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     skip: int = 0,
@@ -51,9 +52,10 @@ def get_chats(
         .all()
     )
     return chats
+
 # 删除特定对话
 @router.delete("/{chat_id}", operation_id="删除对话")
-def delete_chat(
+async def delete_chat(
     *,
     db: Session = Depends(get_db),
     chat_id: int,
@@ -79,7 +81,7 @@ def delete_chat(
 
 # 获取单个对话
 @router.get("/{chat_id}", response_model=ChatResponse, operation_id="获取指定对话")
-def get_chat(
+async def get_chat(
     *,
     db: Session = Depends(get_db),
     chat_id: int,
@@ -102,7 +104,7 @@ def get_chat(
 
 # 存入特定聊天（chat_id）的新消息
 @router.post("/message", response_model=MessageResponse, operation_id="上传对话历史")
-def create_message(
+async def create_message(
     *,  # * 是一个特殊的语法，用于强制指定后续的参数必须以关键字参数（keyword-only arguments）的形式传递，而不是位置参数（positional arguments）。
     db: Session = Depends(get_db),
     message: MessageCreate,

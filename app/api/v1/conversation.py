@@ -54,7 +54,7 @@ def generate_response_for_user(request: ConversationRequest, api_key: str = Depe
     )
 
 @SQL_ChatHistory_Client.post("/chat_history")
-def add_chat_history(request: ChatHistoryRequest, api_key: str = Depends(api_key_auth)):
+async def add_chat_history(request: ChatHistoryRequest, api_key: str = Depends(api_key_auth)):
     try:
         # 如果 request.conversation_id 为空，SQL_client.append_to_conversation 内部应生成新的会话ID
         conversation_id = SQL_client.append_to_conversation(
@@ -78,7 +78,7 @@ def add_chat_history(request: ChatHistoryRequest, api_key: str = Depends(api_key
 
 # 测试接口
 @Test_Client.post("/")
-def api_test(request: ConversationRequest, api_key: str = Depends(api_key_auth)):
+async def api_test(request: ConversationRequest, api_key: str = Depends(api_key_auth)):
     request.conversation_id = str(uuid4())
     results = request
     return results

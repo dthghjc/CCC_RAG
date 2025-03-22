@@ -24,7 +24,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/token")
 """
 Depends 是 FastAPI 提供的一个依赖注入工具，允许函数在调用时自动解析和提供参数，而无需手动传入。
 """
-def get_current_user(
+async def get_current_user(
     db: Session = Depends(get_db),  # 声明并注入依赖项
     token: str = Depends(oauth2_scheme)
 ) -> User:
@@ -76,7 +76,7 @@ def get_current_user(
 
 # 用户注册接口
 @router.post("/register", response_model=UserResponse, operation_id="用户注册")  # 指定返回数据的结构为 UserResponse
-def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:  # *: 表示后面的参数必须是关键字参数（不能用位置参数传递），提高代码可读性。
+async def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:  # *: 表示后面的参数必须是关键字参数（不能用位置参数传递），提高代码可读性。
     """
     用户注册接口。
     """
@@ -119,7 +119,7 @@ def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:  # *
 
 # 获取 JWT 访问令牌
 @router.post("/token", response_model=Token, operation_id="获取 Token")
-def login_access_token(
+async def login_access_token(
     db: Session = Depends(get_db),  # 注入数据库会话，通过 get_db 获取。
     form_data: OAuth2PasswordRequestForm = Depends()  # 注入表单数据，使用 FastAPI 的 OAuth2PasswordRequestForm，从请求中提取用户名和密码。
 ) -> Any:
@@ -158,7 +158,7 @@ def login_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/test_token", response_model=UserResponse, operation_id="测试 Token")
-def test_token(current_user: User = Depends(get_current_user)):
+async def test_token(current_user: User = Depends(get_current_user)):
     """
     测试访问 token 是否有效。
     """

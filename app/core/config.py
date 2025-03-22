@@ -2,11 +2,14 @@ import os
 from pydantic_settings import BaseSettings
 from typing import Optional
 from dotenv import load_dotenv
+from pydantic import ConfigDict
 
 # 加载 .env 文件
 load_dotenv()
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(env_file=".env")
+    
     # Project
     PROJECT_NAME: str = "CFLP_RAG"  # Project name
     VERSION: str = "0.1.0"  # Project version
@@ -66,8 +69,5 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "f7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 10080))
-    
-    class Config:
-        env_file = ".env"
-    
+
 Config = Settings()
