@@ -58,7 +58,7 @@ async def get_chats(
 async def delete_chat(
     *,
     db: Session = Depends(get_db),
-    chat_id: int,
+    chat_id: str,
     current_user: User = Depends(get_current_user)
 ) -> Any:
     """
@@ -84,7 +84,7 @@ async def delete_chat(
 async def get_chat(
     *,
     db: Session = Depends(get_db),
-    chat_id: int,
+    chat_id: str,
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -105,10 +105,10 @@ async def get_chat(
 # 存入特定聊天（chat_id）的新消息
 @router.post("/message", response_model=MessageResponse, operation_id="上传对话历史")
 async def create_message(
-    *,  # * 是一个特殊的语法，用于强制指定后续的参数必须以关键字参数（keyword-only arguments）的形式传递，而不是位置参数（positional arguments）。
+    *,
     db: Session = Depends(get_db),
     message: MessageCreate,
-    current_user: User = Depends(get_current_user)  # 当前登录用户
+    current_user: User = Depends(get_current_user)
 ):
     """
     上传对话历史
@@ -122,7 +122,6 @@ async def create_message(
         .first()
     )
     if not chat:
-        # 抛出 HTTPException
         raise HTTPException(status_code=404, detail="Chat not found")
     
     # 验证 role 是否合法
@@ -139,9 +138,8 @@ async def create_message(
     )
     db.add(new_message)
     db.commit()
-    db.refresh(new_message)  # 刷新以获取 id 和时间戳
+    db.refresh(new_message)
     
-    # 返回响应
     return MessageResponse(
         id=new_message.id,
         chat_id=new_message.chat_id,

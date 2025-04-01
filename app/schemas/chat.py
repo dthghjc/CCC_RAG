@@ -8,11 +8,11 @@ class MessageBase(BaseModel):
     meta_data: Optional[dict] = None
 
 class MessageCreate(MessageBase):
-    chat_id: int
+    chat_id: str
     
 class MessageResponse(MessageBase):
-    id: int
-    chat_id: int
+    id: str
+    chat_id: str
     created_at: datetime
     updated_at: datetime
 
@@ -24,8 +24,8 @@ class ChatBase(BaseModel):
     title: str = ""
 
 class ChatResponse(ChatBase):
-    id: int
-    user_id : int
+    id: str
+    user_id: str
     created_at: datetime
     updated_at: datetime
     messages: List[MessageResponse] = []
