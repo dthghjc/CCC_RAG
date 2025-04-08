@@ -69,5 +69,15 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "f7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 10080))
+    
+    # 邀请码，从环境变量获取后以逗号分隔
+    invite_codes: str = os.getenv("INVITE_CODES", "")
+    
+    @property
+    def get_invite_codes(self) -> list[str]:
+        """获取邀请码列表"""
+        if not self.invite_codes:
+            return []
+        return [code.strip() for code in self.invite_codes.split(",") if code.strip()]
 
 Config = Settings()

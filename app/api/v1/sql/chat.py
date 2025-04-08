@@ -13,7 +13,7 @@ from app.api.v1.sql.auth import get_current_user
 router = APIRouter()
 
 # 创建对话
-@router.post("/", response_model=ChatResponse, operation_id="创建对话")
+@router.post("/", response_model=ChatResponse, operation_id="create_chat")
 async def create_chat(
     *,
     db: Session = Depends(get_db),  # 获取对话数据库
@@ -34,7 +34,7 @@ async def create_chat(
     return chat
 
 # 获取所有对话
-@router.get("/", response_model=List[ChatResponse], operation_id="获取对话列表")
+@router.get("/", response_model=List[ChatResponse], operation_id="list_chats")
 async def get_chats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -54,7 +54,7 @@ async def get_chats(
     return chats
 
 # 删除特定对话
-@router.delete("/{chat_id}", operation_id="删除对话")
+@router.delete("/{chat_id}", operation_id="delete_chat")
 async def delete_chat(
     *,
     db: Session = Depends(get_db),
@@ -80,7 +80,7 @@ async def delete_chat(
     return {"status": "success"}
 
 # 获取单个对话
-@router.get("/{chat_id}", response_model=ChatResponse, operation_id="获取指定对话")
+@router.get("/{chat_id}", response_model=ChatResponse, operation_id="get_chat")
 async def get_chat(
     *,
     db: Session = Depends(get_db),
@@ -103,7 +103,7 @@ async def get_chat(
     return chat
 
 # 存入特定聊天（chat_id）的新消息
-@router.post("/message", response_model=MessageResponse, operation_id="上传对话历史")
+@router.post("/message", response_model=MessageResponse, operation_id="create_message")
 async def create_message(
     *,
     db: Session = Depends(get_db),

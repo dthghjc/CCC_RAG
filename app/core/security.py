@@ -84,30 +84,3 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     """
     encoded_jwt = jwt.encode(to_encode, Config.SECRET_KEY, algorithm=Config.ALGORITHM)
     return encoded_jwt 
-
-
-# def get_api_key_user(
-#     db: Session = Depends(get_db),
-#     api_key: str = Security(api_key_header),
-# ) -> User:
-#     if not api_key:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="API key header missing",
-#         )
-    
-#     api_key_obj = APIKeyService.get_api_key_by_key(db=db, key=api_key)
-#     if not api_key_obj:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Invalid API key",
-#         )
-    
-#     if not api_key_obj.is_active:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Inactive API key",
-#         )
-    
-#     APIKeyService.update_last_used(db=db, api_key=api_key_obj)
-#     return api_key_obj.user 

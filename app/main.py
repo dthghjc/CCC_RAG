@@ -22,7 +22,7 @@ app = FastAPI(
 )
 
 # 根路由
-@app.get("/v1", operation_id="根路由")
+@app.get("/v1", operation_id="root")
 def root():
     """
     根路由

@@ -75,50 +75,56 @@ async def get_current_user(
     return user
 
 # 用户注册接口
-@router.post("/register", response_model=UserResponse, operation_id="用户注册")  # 指定返回数据的结构为 UserResponse
-async def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:  # *: 表示后面的参数必须是关键字参数（不能用位置参数传递），提高代码可读性。
+@router.post("/register", response_model=UserResponse, operation_id="register_user")
+async def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any:
     """
-    用户注册接口。
+    用户注册接口
+    - username: 必填，用户名
+    - password: 必填，密码
+    - email: 可选，邮箱
+    - nickname: 可选，昵称
+    
+    注：id、is_active、is_superuser 由系统自动生成
     """
     try:
-        # 检查邮箱是否存在
-        user = db.query(User).filter(User.email == user_in.email).first()
-        if user:
-            # 邮箱重复，抛出异常。
-            raise HTTPException(
-                status_code=400,
-                detail="A user with this email already exists.",
-            )
-        
         # 检查用户名是否存在
         user = db.query(User).filter(User.username == user_in.username).first()
         if user:
-            # 用户名重复，抛出异常。
             raise HTTPException(
                 status_code=400,
-                detail="A user with this username already exists.",
+                detail="用户名已存在",
             )
+        
+        # 如果提供了邮箱，检查邮箱是否存在
+        if user_in.email:
+            user = db.query(User).filter(User.email == user_in.email).first()
+            if user:
+                raise HTTPException(
+                    status_code=400,
+                    detail="邮箱已被注册",
+                )
         
         # 创建新用户
         user = User(
-            email=user_in.email,
             username=user_in.username,
-            hashed_password=security.get_password_hash(user_in.password),  # 对明文密码进行哈希，确保安全存储。
+            email=user_in.email,
+            nickname=user_in.nickname,
+            hashed_password=security.get_password_hash(user_in.password),
+            is_active=True,  # 默认设置为激活状态
+            is_superuser=False,  # 默认设置为非超级用户
         )
         db.add(user)
         db.commit()
         db.refresh(user)
         return user
     except RequestException as e:
-        # 异常处理
         raise HTTPException(
-            # 抛出 503 错误（Service Unavailable），表示服务暂时不可用。
             status_code=503,
-            detail="Network error or server is unreachable. Please try again later.",
-        ) from e  # from e: 将原始异常 e 附加到新异常的上下文，便于调试
+            detail="网络错误或服务器无法访问，请稍后重试",
+        ) from e
 
 # 获取 JWT 访问令牌
-@router.post("/token", response_model=Token, operation_id="获取 Token")
+@router.post("/token", response_model=Token, operation_id="get_access_token")
 async def login_access_token(
     db: Session = Depends(get_db),  # 注入数据库会话，通过 get_db 获取。
     form_data: OAuth2PasswordRequestForm = Depends()  # 注入表单数据，使用 FastAPI 的 OAuth2PasswordRequestForm，从请求中提取用户名和密码。
@@ -157,7 +163,7 @@ async def login_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/test_token", response_model=UserResponse, operation_id="测试 Token")
+@router.post("/test_token", response_model=UserResponse, operation_id="test_access_token")
 async def test_token(current_user: User = Depends(get_current_user)):
     """
     测试访问 token 是否有效。
