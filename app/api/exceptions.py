@@ -98,6 +98,11 @@ class APIExceptions:
         detail="Chat not found for this user",  # 未找到此用户的指定对话
     )
 
+    CHAT_ID_EXISTS_EXCEPTION = HTTPException(
+        status_code=status.HTTP_409_CONFLICT,  # 409 Conflict 状态码表示请求冲突
+        detail="Chat ID already exists",  # 指定的 Chat ID 已存在
+    )
+
     INVALID_ROLE_EXCEPTION = HTTPException(
         status_code=463,  # 自定义状态码：463 - 角色无效
         detail="Invalid role",  # 角色无效

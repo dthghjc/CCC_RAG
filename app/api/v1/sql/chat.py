@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.chat import Chat, Message
 from app.models.user import User
-from app.schemas.chat import ChatBase, ChatResponse, MessageCreate, MessageResponse
+from app.schemas.chat import ChatCreate, ChatResponse, MessageCreate, MessageResponse
 from app.api.v1.sql.auth import get_current_user
 from app.api.exceptions import APIExceptions
 
@@ -15,17 +15,41 @@ router = APIRouter()
 @router.post("/", response_model=ChatResponse, operation_id="create_chat")
 async def create_chat(
     *,
-    db: Session = Depends(get_db),  # 获取对话数据库
-    chat_in: ChatBase,
-    current_user: User = Depends(get_current_user)  # 获取当前登录的用户
+    db: Session = Depends(get_db),
+    chat_in: ChatCreate,
+    current_user: User = Depends(get_current_user)
 ):
     """
-    创建新对话
+    创建新对话。
+    - **title**: 对话标题，可以为空。
+    - **id**: (可选) 前端可以指定对话ID。如果提供，将在数据库中检查唯一性。
+             如果未提供，将由后端自动生成。
     """
-    chat = Chat(
-        title=chat_in.title,
-        user_id=current_user.id
-    )
+    # 检查前端是否提供了 ID
+    if chat_in.id:
+        # 检查提供的 ID 是否已存在
+        existing_chat = db.query(Chat).filter(Chat.id == chat_in.id).first()
+        if existing_chat:
+            raise APIExceptions.CHAT_ID_EXISTS_EXCEPTION
+        chat_id = chat_in.id
+    else:
+        # 前端未提供 ID，让模型使用默认生成器
+        chat_id = None # 传递 None 或不传 id 参数都可以让 SQLAlchemy 使用默认值
+
+    # 处理 title，如果为 None 则使用空字符串（因为模型定义 title 不可为 null）
+    chat_title = chat_in.title if chat_in.title is not None else ""
+
+    # 创建 Chat 对象
+    chat_data = {
+        "title": chat_title,
+        "user_id": current_user.id
+    }
+    # 只有在前端提供了 ID 时才将其加入 data
+    if chat_id:
+        chat_data["id"] = chat_id
+
+    chat = Chat(**chat_data)
+
     db.add(chat)
     db.commit()
     db.refresh(chat)
@@ -148,3 +172,26 @@ async def create_message(
         created_at=new_message.created_at,
         updated_at=new_message.updated_at
     )
+
+# 检查对话是否存在
+@router.get("/{chat_id}/exists", operation_id="check_chat_exists")
+async def check_chat_exists(
+    *,
+    db: Session = Depends(get_db),
+    chat_id: str,
+    current_user: User = Depends(get_current_user)
+) -> dict:
+    """
+    检查指定ID的对话是否存在于当前用户下。
+    不返回对话内容，仅确认存在性。
+    """
+    chat = (
+        db.query(Chat)
+        .filter(
+            Chat.id == chat_id,
+            Chat.user_id == current_user.id
+        )
+        .first()
+    )
+
+    return {"exists": chat is not None}
