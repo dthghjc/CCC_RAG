@@ -1,18 +1,17 @@
+from typing import Any, List
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Any
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.models.user import User
 from app.models.chat import Chat, Message
+from app.models.user import User
 from app.schemas.chat import ChatBase, ChatResponse, MessageCreate, MessageResponse
-
 from app.api.v1.sql.auth import get_current_user
-
+from app.api.exceptions import APIExceptions
 
 router = APIRouter()
 
-# 创建对话
+# 创建新对话
 @router.post("/", response_model=ChatResponse, operation_id="create_chat")
 async def create_chat(
     *,
@@ -21,13 +20,12 @@ async def create_chat(
     current_user: User = Depends(get_current_user)  # 获取当前登录的用户
 ):
     """
-    创建对话
+    创建新对话
     """
     chat = Chat(
         title=chat_in.title,
-        user_id=current_user.id,
+        user_id=current_user.id
     )
-    # 将这次对话储存到数据库
     db.add(chat)
     db.commit()
     db.refresh(chat)
@@ -42,11 +40,12 @@ async def get_chats(
     limit: int = 100
 ):
     """
-    获取对话
+    获取当前用户的所有对话
     """
     chats = (
         db.query(Chat)
         .filter(Chat.user_id == current_user.id)
+        .order_by(Chat.created_at.desc())
         .offset(skip)
         .limit(limit)
         .all()
@@ -73,7 +72,7 @@ async def delete_chat(
         .first()
     )
     if not chat:
-        raise HTTPException(status_code=404, detail="Chat not found")
+        raise APIExceptions.USER_CHAT_NOT_FOUND_EXCEPTION
     
     db.delete(chat)
     db.commit()
@@ -99,7 +98,7 @@ async def get_chat(
         .first()
     )
     if not chat:
-        raise HTTPException(status_code=404, detail="Chat not found")
+        raise APIExceptions.USER_CHAT_NOT_FOUND_EXCEPTION
     return chat
 
 # 存入特定聊天（chat_id）的新消息
@@ -122,12 +121,12 @@ async def create_message(
         .first()
     )
     if not chat:
-        raise HTTPException(status_code=404, detail="Chat not found")
+        raise APIExceptions.USER_CHAT_NOT_FOUND_EXCEPTION
     
     # 验证 role 是否合法
     valid_roles = {"system", "user", "assistant"}
     if message.role not in valid_roles:
-        raise HTTPException(status_code=400, detail=f"Role must be one of {valid_roles}")
+        raise APIExceptions.INVALID_ROLE_EXCEPTION
     
     # 创建并存储新消息
     new_message = Message(

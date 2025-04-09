@@ -5,6 +5,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from requests.exceptions import RequestException
+import re
+import uuid
 
 from app.core import security
 from app.core.config import Config
@@ -12,6 +14,7 @@ from app.db.session import get_db
 from app.models.user import User
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
+from app.api.exceptions import APIExceptions
 
 router = APIRouter()  # 创建一个名为 "router" 的 API 路由器
 # 定义 JWT 认证的 token 端点（/token），客户端通过此端点获取 token。
@@ -35,13 +38,8 @@ async def get_current_user(
     在 FastAPI 中，raise 抛出的 HTTPException 会被框架捕获并转换为 HTTP 响应，
     不会中断整个程序（服务器继续运行）。
     """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,  # HTTP 状态码 401，表示未授权。
-        detail="Could not validate credentials",  # 错误信息，提示无法验证凭证。
-        headers={"WWW-Authenticate": "Bearer"},  # 返回 WWW-Authenticate: Bearer，符合 OAuth2 规范，提示客户端需要提供有效的 Bearer Token。
-    )
     
-    # 解码 JWT token，并验证其有效性。如果 token 无效或用户不存在，将抛出 credentials_exception 异常。
+    # 解码 JWT token，并验证其有效性。如果 token 无效或用户不存在，将抛出异常。
     try:
         # jwt.decode: 解码 JWT 令牌。
         # token: 从请求中提取的令牌。
@@ -51,28 +49,35 @@ async def get_current_user(
         
         # 从解码后的 payload 中提取 sub 字段（通常表示用户名或用户 ID）
         username: str = payload.get("sub")
-        # 如果 payload 中没有 sub 字段，则抛出 credentials_exception 异常
+        # 如果 payload 中没有 sub 字段，则抛出异常
         if username is None:
-            raise credentials_exception
+            raise APIExceptions.TOKEN_INVALID_EXCEPTION
     except JWTError:
-        # 如果令牌无效（例如签名错误、过期等），捕获异常并抛出 401 异常。
-        raise credentials_exception
+        # 如果令牌无效（例如签名错误、过期等），捕获异常并抛出异常。
+        raise APIExceptions.TOKEN_INVALID_EXCEPTION
     
-    # 查询用户，如果用户不存在，抛出 credentials_exception 异常。
+    # 查询用户，如果用户不存在，抛出异常。
     user = db.query(User).filter(User.username == username).first()
     if user is None:
-        raise credentials_exception
+        raise APIExceptions.USER_NOT_FOUND_EXCEPTION
     
     # 用户处于非活动状态
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Inactive user",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise APIExceptions.INACTIVE_USER_EXCEPTION
     
     # 返回经过验证的 User 对象，供后续接口使用。
     return user
+
+# 验证邮箱格式的函数
+def is_valid_email(email: str) -> bool:
+    """
+    验证邮箱格式是否有效
+    简单的正则表达式验证：包含@符号和点号，并且@在点号之前
+    """
+    if not email or email.strip() == "":
+        return False
+    pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return bool(re.match(pattern, email))
 
 # 用户注册接口
 @router.post("/register", response_model=UserResponse, operation_id="register_user")
@@ -90,33 +95,38 @@ async def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any
         invite_codes = Config.get_invite_codes
         # 只有当邀请码列表不为空时才验证邀请码
         if invite_codes and user_in.invite_code not in invite_codes:
-            raise HTTPException(
-                status_code=403,
-                detail="Invalid invite code",
-            )
+            raise APIExceptions.INVALID_INVITE_CODE_EXCEPTION
         
         # 检查用户名是否存在
         user = db.query(User).filter(User.username == user_in.username).first()
         if user:
-            raise HTTPException(
-                status_code=400,
-                detail="Username already exists",
-            )
+            raise APIExceptions.USERNAME_EXISTS_EXCEPTION
         
-        # 如果提供了邮箱，检查邮箱是否存在
-        if user_in.email:
-            user = db.query(User).filter(User.email == user_in.email).first()
+        # 处理邮箱
+        email = user_in.email
+        if email and email.strip():  # 如果提供了非空邮箱
+            # 验证邮箱格式
+            if not is_valid_email(email):
+                raise APIExceptions.INVALID_EMAIL_FORMAT_EXCEPTION
+                
+            # 检查邮箱是否已存在
+            user = db.query(User).filter(User.email == email).first()
             if user:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Email already registered",
-                )
+                raise APIExceptions.EMAIL_EXISTS_EXCEPTION
+        else:
+            # 如果没有提供邮箱，将其设置为None，避免空字符串导致的唯一性约束问题
+            email = None
+        
+        # 如果未提供nickname或为空字符串，生成一个随机的nickname
+        nickname = user_in.nickname
+        if not nickname or nickname.strip() == "":
+            nickname = f"user_{uuid.uuid4().hex[:8]}"
         
         # 创建新用户
         user = User(
             username=user_in.username,
-            email=user_in.email,
-            nickname=user_in.nickname,
+            email=email,  # 使用处理后的email
+            nickname=nickname,
             hashed_password=security.get_password_hash(user_in.password),
             is_active=True,  # 默认设置为激活状态
             is_superuser=False,  # 默认设置为非超级用户
@@ -127,10 +137,7 @@ async def register(*, db: Session = Depends(get_db), user_in: UserCreate) -> Any
         return user
     except RequestException as e:
         # 处理网络或服务器错误
-        raise HTTPException(
-            status_code=503,
-            detail="Network error or server unavailable, please try again later",
-        ) from e
+        raise APIExceptions.NETWORK_ERROR_EXCEPTION from e
 
 # 获取 JWT 访问令牌
 @router.post("/token", response_model=Token, operation_id="get_access_token")
@@ -144,21 +151,17 @@ async def login_access_token(
     # 验证用户凭证
     user = db.query(User).filter(User.username == form_data.username).first()
     
-    # 验证用户名和密码
-    if not user or not security.verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # 检查用户是否存在
+    if not user:
+        raise APIExceptions.USER_NOT_FOUND_EXCEPTION
+    
+    # 验证密码
+    if not security.verify_password(form_data.password, user.hashed_password):
+        raise APIExceptions.INCORRECT_PASSWORD_EXCEPTION
     
     # 验证用户状态    
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Inactive user",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise APIExceptions.INACTIVE_USER_EXCEPTION
     
     # 生成访问 token - 使用 timedelta 创建过期时间间隔
     # Config.ACCESS_TOKEN_EXPIRE_MINUTES: 从配置中读取令牌有效期（例如 30 分钟）
