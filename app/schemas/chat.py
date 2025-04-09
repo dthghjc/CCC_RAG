@@ -12,7 +12,6 @@ class MessageCreate(MessageBase):
     
 class MessageResponse(MessageBase):
     id: str
-    sequence_id: int
     chat_id: str
     created_at: datetime
     updated_at: datetime
@@ -29,7 +28,6 @@ class ChatCreate(ChatBase):
 
 class ChatResponse(ChatBase):
     id: str
-    sequence_id: int
     user_id: str
     created_at: datetime
     updated_at: datetime
